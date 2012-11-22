@@ -5,7 +5,7 @@
   "contributors": ["Robert Krahn <robert.krahn@gmail.com>"],
   "description": "Another web server for Lively",
   "dependencies": {
-    "jsDAV": "https://github.com/mikedeboer/jsDAV/tarball/master",
+    "jsDAV": "https://github.com/fbornhofen/jsDAV/tarball/dontrewriteheaders",
     "express": "3.x",
     "log4js": "0.4.1",
     "request": "2.1.1"
