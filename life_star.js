@@ -9,9 +9,9 @@ var express = require('express'),
     auth = require('./lib/auth'),
     WorkspaceHandler = require('./lib/workspace').WorkspaceHandler,
     SubserverHandler = require('./lib/subservers').SubserverHandler,
+    ManifestHandler = require('./lib/manifest').ManifestHandler,
     spawn = require('child_process').spawn,
-    fs = require('fs'),
-    path = require('path');
+    fs = require('fs');
 
 module.exports = function serverSetup(config) {
 
@@ -27,6 +27,7 @@ module.exports = function serverSetup(config) {
   config.enableSSLClientAuth = config.enableSSL && config.enableSSLClientAuth;
   config.behindProxy         = config.behindProxy || false;
   config.subservers          = config.subservers || {};
+  config.useManifestCaching  = config.useManifestCaching || (config.useManifestCaching === undefined);
 
   var app = express(), srv;
 
@@ -122,6 +123,12 @@ module.exports = function serverSetup(config) {
   // -=-=-=-=-=-=-=-
   new SubserverHandler({baseURL: '/nodejs/', additionalSubservers: config.subservers}).registerWith(app);
 
+  // -=-=-=-=-=-=-=-=-=-=-
+  // manifest file related
+  // -=-=-=-=-=-=-=-=-=-=-
+  var manifestHandler = new ManifestHandler(config);
+  manifestHandler.registerWith(app);
+
   // -=-=-=-=-=-
   // set up DAV
   // -=-=-=-=-=-
@@ -138,6 +145,7 @@ module.exports = function serverSetup(config) {
     if (req.url.match(/\?\d+/)) {
       req.url = req.url.replace(/\?.*/, ''); // only the bare file name
     }
+    manifestHandler.addManifestRef(req, res);
     new DavHandler(srv, req, res);
   };
 
