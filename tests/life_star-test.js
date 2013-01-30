@@ -5,6 +5,7 @@ var lifeStar = require("./../life_star"),
     exec = require('child_process').exec,
     async = require('async'),
     path = require('path'),
+    http = require('http'),
     server;
 
 function withLifeStarDo(test, func, options) {
@@ -21,19 +22,23 @@ function withLifeStarDo(test, func, options) {
 }
 
 function shutDownLifeStar(thenDo) {
-  if (!server) { thenDo(); return }
-  server.close(function() {
-    server = null;
-    console.log("life_star shutdown");
+  if (!server) {
     thenDo();
-  });
+  } else {
+    server.close(function() { server = null; thenDo(); });
+  }
 }
 
 var tempFiles = [], tempDirs = [];
+function registerTempFile(filename) {
+  tempFiles.push(filename);
+}
+
 function createTempFile(filename, content) {
   fs.writeFileSync(filename, content);
-  tempFiles.push(filename);
+  registerTempFile(filename);
   console.log('created ' + filename);
+  return filename;
 }
 
 function createTempDir(dir) {
@@ -44,7 +49,11 @@ function createTempDir(dir) {
 function cleanupTempFiles(thenDo) {
   async.series(
     tempFiles.map(function(file) {
-      return function(cb) { fs.unlinkSync(file); cb(); };
+      return function(cb) {
+        if (fs.existsSync(file)) fs.unlinkSync(file);
+        else console.warn('trying to cleanup file %s but it did not exist', file);
+        cb();
+      };
     }).concat(tempDirs.map(function(dir) {
       return function(cb) {
         exec('rm -rfd ' + dir, function(code, out, err) { cb(); });
@@ -84,11 +93,29 @@ function withResponseBodyDo(res, callback) {
   });
 }
 
+function get(path, callback) {
+  return http.get('http://localhost:9999' + path, callback);
+}
+
+function request(method, path, data, callback) {
+  if (typeof data === 'function' && !callback) { callback = data; data = null }
+  var req = http.request({hostname: 'localhost', port: 9999, path: path, method: method}, callback);
+  if (data) req.write(typeof data === 'object' ? JSON.stringify(data) : data);
+  req.end();
+  return req;
+}
+
+
 module.exports = {
   withLifeStarDo: withLifeStarDo,
   shutDownLifeStar: shutDownLifeStar,
+  registerTempFile: registerTempFile,
   createTempFile: createTempFile,
   cleanupTempFiles: cleanupTempFiles,
   createDirStructure: createDirStructure,
-  withResponseBodyDo: withResponseBodyDo
+  withResponseBodyDo: withResponseBodyDo,
+  GET: get,
+  PUT: request.bind(null, 'PUT'),
+  DEL: request.bind(null, 'DELETE'),
+  POST: request.bind(null, 'POST')
 }

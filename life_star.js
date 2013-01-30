@@ -116,18 +116,18 @@ module.exports = function serverSetup(config) {
   // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
   // setup workspace handler / routes
   // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  new WorkspaceHandler({}, config.srvOptions.node).registerWith(app);
+  new WorkspaceHandler({}, config.srvOptions.node).registerWith(app, srv);
 
   // -=-=-=-=-=-=-=-
   // setup subserver
   // -=-=-=-=-=-=-=-
-  new SubserverHandler({baseURL: '/nodejs/', additionalSubservers: config.subservers}).registerWith(app);
+  new SubserverHandler({baseURL: '/nodejs/', additionalSubservers: config.subservers}).registerWith(app, srv);
 
   // -=-=-=-=-=-=-=-=-=-=-
   // manifest file related
   // -=-=-=-=-=-=-=-=-=-=-
   var manifestHandler = new ManifestHandler(config);
-  manifestHandler.registerWith(app);
+  manifestHandler.registerWith(app, srv);
 
   // -=-=-=-=-=-
   // set up DAV
