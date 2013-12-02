@@ -9,6 +9,7 @@ var express = require('express'),
     SubserverHandler = require('./lib/subservers').SubserverHandler,
     WebsocketHandler = require('./lib/websocket').WebsocketHandler,
     ManifestHandler = require('./lib/manifest').ManifestHandler,
+    CombinedModulesHandler = require('./lib/combinedmodules').CombinedModulesHandler,
     spawn = require('child_process').spawn,
     util = require('util'),
     fs = require('fs'),
@@ -162,6 +163,13 @@ var serverSetup = module.exports = function(config) {
       next();
     });
   }
+
+  // -=-=-=-=-=-=-=-
+  // setup combined modules
+  // -=-=-=-=-=-=-=-
+  new CombinedModulesHandler({
+    repoPath: config.fsNode
+  }).registerWith(app, server);
 
   // -=-=-=-=-=--=-=-=-=-=--=-=-=-
   // set up file system connection
