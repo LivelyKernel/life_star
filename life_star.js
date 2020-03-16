@@ -1,3 +1,6 @@
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 /*global require, module*/
 var lang             = require('lively.lang'),
     express          = require('express'),
@@ -96,23 +99,22 @@ var serverSetup = module.exports = function(config, thenDo) {
 
   function createServer(next) {
     if (config.enableSSL) {
-      var https = require('https'),
-          options = {
-            // Specify the key and certificate file
-            key: fs.readFileSync(config.sslServerKey),
-            cert: fs.readFileSync(config.sslServerCert),
-            // Specify the Certificate Authority certificate
-            ca: fs.readFileSync(config.sslCACert),
-  
-            // This is where the magic happens in Node. All previous steps simply
-            // setup SSL (except the CA). By requesting the client provide a
-            // certificate, we are essentially authenticating the user.
-            requestCert: config.enableSSLClientAuth,
-  
-            // If specified as "true", no unauthenticated traffic will make it to
-            // the route specified.
-            rejectUnauthorized: config.enableSSLClientAuth
-          };
+      var options = {
+        // Specify the key and certificate file
+        key: fs.readFileSync(config.sslServerKey),
+        cert: fs.readFileSync(config.sslServerCert),
+        // Specify the Certificate Authority certificate
+        ca: fs.readFileSync(config.sslCACert),
+
+        // This is where the magic happens in Node. All previous steps simply
+        // setup SSL (except the CA). By requesting the client provide a
+        // certificate, we are essentially authenticating the user.
+        requestCert: config.enableSSLClientAuth,
+
+        // If specified as "true", no unauthenticated traffic will make it to
+        // the route specified.
+        rejectUnauthorized: config.enableSSLClientAuth
+      };
       server = require('https').createServer(options, app);
     } else {
       server = require('http').createServer(app);
@@ -209,17 +211,17 @@ var serverSetup = module.exports = function(config, thenDo) {
   }
 
   function setupBodyParser(next) {
-    app.use(express.bodyParser({limit: '150mb'}));
+    app.use(bodyParser({limit: '150mb'}));
     next();
   }
   
   function setupCookies(next) {
-    app.use(express.cookieParser());
+    app.use(cookieParser());
   
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     // store auth information into a cookie
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-    app.use(express.cookieSession({
+    app.use(cookieSession({
       key: 'livelykernel-sign-on',
       secret: 'foo',
       proxy: config.behindProxy,
