@@ -233,7 +233,7 @@ var serverSetup = module.exports = function(config, thenDo) {
     // set up logger, proxy and testing routes
     // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
     logger = log4js.getLogger();
-    logger.setLevel((config.logLevel || 'OFF').toUpperCase());
+    logger.level = (config.logLevel || 'OFF').toUpperCase();
     morgan.token('user', function(req, res) { return (req.session && req.session["lvUserData_2013-10-12"] && req.session["lvUserData_2013-10-12"].username) || 'unknown user'; });
     morgan.token('email', function(req, res) { return (req.session && req.session["lvUserData_2013-10-12"] && req.session["lvUserData_2013-10-12"].email) || ''; });
     // default format:
